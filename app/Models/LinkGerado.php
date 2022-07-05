@@ -31,12 +31,12 @@ class LinkGerado extends Model
         $date = Carbon::now();
         $link_valido = self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
                 ->where('link_redirecionamento.acessto_atual', '<', 'link_redirecionamento.acesso_maximo')
-                ->whereRaw("link_redirecionamento.data_validade > $date OR link_redirecionamento.data_validade = null")
+//                ->whereRaw("link_redirecionamento.data_validade > $date OR link_redirecionamento.data_validade = null")
                 ->where('link_gerado.valido', 1)
-                ->dd();
+                ->get();
 
         if ($link_valido) {
-            return 'Um link default já está cadastrado';
+            return 'Um link default já está cadastrado e válido! Para cadastrar outro default, destive esse link.';
         }
 
         $link_gerado = new LinkGerado();
