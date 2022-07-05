@@ -14,7 +14,7 @@ class NullableDataValidadeLinkRedirectTable extends Migration
     public function up()
     {
         Schema::table('link_redirecionamento', function($table) {
-            $table->string('data_validade')->nullable();
+            $table->dateTime('data_validade')->nullable();
         });
     }
 

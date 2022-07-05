@@ -21,10 +21,12 @@ class LinkRedirecionamento extends Model
         $link_redirecionamento->link = $filters['link_redirecionamento'];
         $link_redirecionamento->acesso_maximo = (int)$filters['acesso_maximo'] ?? null;
         $link_redirecionamento->acessto_atual = 0;
-        $link_redirecionamento->data_validade = $filters['data_validade'] ?? null;
+        $link_redirecionamento->data_validade = $filters['data_validade'] ?? Carbon::createFromDate('1900','01', '01');
         $link_redirecionamento->link_default = $filters['link_default']  == 'true' ? true : false;
         $link_redirecionamento->link_gerado_id = $link_gerado_id;
         $link_redirecionamento->save();
+
+        return $link_redirecionamento;
 
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
+use phpDocumentor\Reflection\Types\This;
 
 class LinkGerado extends Model
 {
@@ -28,25 +29,32 @@ class LinkGerado extends Model
             return $validator->errors();
         }
 
-        $date = Carbon::now();
-        $link_valido = self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
-                ->where('link_redirecionamento.acessto_atual', '<', 'link_redirecionamento.acesso_maximo')
-//                ->whereRaw("link_redirecionamento.data_validade > $date OR link_redirecionamento.data_validade = null")
+        $date = date('Y-m-d');
+        $link_valido =  self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
+                ->whereRaw("(link_redirecionamento.data_validade > '$date' OR link_redirecionamento.data_validade = '1900-01-01')")
                 ->where('link_gerado.valido', 1)
-                ->get();
+                ->where('link_redirecionamento.link_default', 1)
+                ->whereRaw('link_redirecionamento.acessto_atual < link_redirecionamento.acesso_maximo')
+                ->first();
 
         if ($link_valido) {
             return 'Um link default já está cadastrado e válido! Para cadastrar outro default, destive esse link.';
         }
 
+        $link_random = (string)rand(111111, 999999);
         $link_gerado = new LinkGerado();
         $link_gerado->nome = $filters['nome'];
-        $link_gerado->link_gerado = (string)rand(111111, 999999);
+        $link_gerado->link_gerado = 'http://localhost:8080/api/'.$link_random;
         $link_gerado->valido = true;
         $link_gerado->save();
 
-        $link_redirecionamento = LinkRedirecionamento::createLinkRedirecionamento($filters, $link_gerado->id);
+        $link_gerado = LinkRedirecionamento::createLinkRedirecionamento($filters, $link_gerado->id);
 
-        return 'ok';
+        return $dataRest = [
+            'message' => 'Link criado com sucesso',
+            'nome_link' => $filters['nome'],
+            'link_gerado' => 'http://localhost:8080/api/'.$link_random,
+            'acessos' => $link_gerado->acesso_maximo
+        ];
     }
 }
