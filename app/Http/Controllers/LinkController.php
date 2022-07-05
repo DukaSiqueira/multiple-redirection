@@ -22,8 +22,8 @@ class LinkController extends Controller
 
             return $this->link_gerado->createLink($filters);
         } catch (\Throwable $exception) {
-            dd($exception);
-            abort(500, $exception->getMessage());
+//            dd($exception);
+            return $exception->getMessage();
         }
     }
 }
