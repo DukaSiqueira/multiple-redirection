@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use http\Env\Request;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use phpDocumentor\Reflection\Types\This;
@@ -21,24 +22,10 @@ class LinkGerado extends Model
         $validator = Validator::make($filters,
         [
             'nome' => 'required',
-            'link_redirecionamento' => 'required',
-            'acesso_maximo' => 'required'
         ]);
 
         if ($validator->fails()) {
             return $validator->errors();
-        }
-
-        $date = date('Y-m-d');
-        $link_valido =  self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
-                ->whereRaw("(link_redirecionamento.data_validade > '$date' OR link_redirecionamento.data_validade = '1900-01-01')")
-                ->where('link_gerado.valido', 1)
-                ->where('link_redirecionamento.link_default', 1)
-                ->whereRaw('link_redirecionamento.acessto_atual < link_redirecionamento.acesso_maximo')
-                ->first();
-
-        if ($link_valido) {
-            return 'Um link default já está cadastrado e válido! Para cadastrar outro default, destive esse link.';
         }
 
         $link_random = (string)rand(111111, 999999);
@@ -48,13 +35,51 @@ class LinkGerado extends Model
         $link_gerado->valido = true;
         $link_gerado->save();
 
-        $link_gerado = LinkRedirecionamento::createLinkRedirecionamento($filters, $link_gerado->id);
-
-        return $dataRest = [
+        return response($dataRest = [
             'message' => 'Link criado com sucesso',
             'nome_link' => $filters['nome'],
             'link_gerado' => 'http://localhost:8080/api/'.$link_random,
-            'acessos' => $link_gerado->acesso_maximo
-        ];
+            'ativo' => $link_gerado->valido
+        ], 200);
+    }
+
+    public function editLink($request)
+    {
+        $link = self::where('link_gerado.id', $request->id)->first();
+
+        if (is_null($link)) {
+            return response('Link não encontrado, tente um id válido', 500);
+        }
+
+        $link->nome = $request->nome;
+        $link->valido = $request->ativo;
+        $link->save();
+
+        return  response($link, 200);
+    }
+
+
+    public function redirectLink($request)
+    {
+        $hash = $request->hash;
+        $date = date('Y-m-d');
+
+        $link_valido = self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
+            ->where('link_gerado.link_gerado', 'http://localhost:8080/api/'.$request->hash)
+            ->where('link_redirecionamento.link_gerado_id', $request->link_gerado_id)
+            ->where('link_gerado.valido', 1)
+            ->whereRaw("(link_redirecionamento.data_validade > '$date' OR link_redirecionamento.data_validade = '1900-01-01')")
+            ->whereRaw('link_redirecionamento.acessto_atual < link_redirecionamento.acesso_maximo')
+            ->first();
+
+        if (!$link_valido) {
+            $link = self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
+                ->where('link_redirecionamento.link_gerado_id', $request->link_gerado_id)
+                ->where('link_redirecionamento.link_default', 1)
+                ->first();
+            return response($link->link, 200);
+        }
+
+        return response($link_valido->link, 200);
     }
 }

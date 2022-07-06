@@ -18,5 +18,10 @@ $router->get('/', function () use ($router) {
 });
 
 $router->group(['prefix' => 'api'], function () use ($router) {
-    $router->get('create-link', ['uses' => 'LinkController@create']);
+    $router->post('create-link', ['uses' => 'LinkController@create']);
+    $router->post('create-link-redirect', ['uses' => 'LinkController@createLinkRedirect']);
+    $router->put('edit-link-gerado', ['uses' => 'LinkController@editLinkGerado']);
+    $router->put('edit-link-redirect', ['uses' => 'LinkController@editLinkRedirecionamento']);
+    $router->put('desativar-default', ['uses' => 'LinkController@desativarDefault']);
+    $router->get('', ['uses' => 'LinkController@redirectLink']);
 });
