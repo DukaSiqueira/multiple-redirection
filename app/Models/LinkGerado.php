@@ -57,4 +57,27 @@ class LinkGerado extends Model
 
         return  response($link, 200);
     }
+
+
+    public function redirectLink($request)
+    {
+        $hash = $request->hash;
+
+        $link_valido = self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
+            ->where('link_gerado.link_gerado', 'http://localhost:8080/api/'.$request->hash)
+            ->where('link_redirecionamento.link_gerado_id', $request->link_gerado_id)
+            ->where('link_gerado.valido', 1)
+            ->whereRaw('link_redirecionamento.acessto_atual < link_redirecionamento.acesso_maximo')
+            ->first();
+
+        if (!$link_valido) {
+            $link = self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
+                ->where('link_redirecionamento.link_gerado_id', $request->link_gerado_id)
+                ->where('link_redirecionamento.link_default', 1)
+                ->first();
+            return response($link->link, 200);
+        }
+
+        return response($link_valido->link, 200);
+    }
 }
