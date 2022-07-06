@@ -51,7 +51,6 @@ class LinkController extends Controller
         try {
             return $this->link_redirecionamento->editLinkRedirect($request);
         } catch (\Throwable $exception) {
-            dd($exception);
             response($exception->getMessage(), 500);
         }
     }
@@ -61,7 +60,6 @@ class LinkController extends Controller
         try {
             return $this->link_gerado->redirectLink($request);
         } catch (\Throwable $exception) {
-            dd($exception);
             response($exception->getMessage(), 500);
         }
     }
