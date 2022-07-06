@@ -16,11 +16,8 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
-<<<<<<< Updated upstream
-=======
 
 $router->group(['prefix' => 'api'], function () use ($router) {
     $router->get('create-link', ['uses' => 'LinkController@create']);
     $router->get('edit-link-gerado', ['uses' => 'LinkController@editLinkGerado']);
 });
->>>>>>> Stashed changes

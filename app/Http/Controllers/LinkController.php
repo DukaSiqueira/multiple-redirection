@@ -31,7 +31,6 @@ class LinkController extends Controller
         try {
             return $this->link_gerado->editLink($request);
         } catch (\Throwable $exception) {
-            dd($exception);
             response($exception->getMessage(), 500);
         }
     }

@@ -71,6 +71,6 @@ class LinkGerado extends Model
         $link->valido = $request->ativo;
         $link->save();
 
-        return 'N da certo nunca' /*response($link, 200)*/;
+        return  response($link, 200);
     }
 }
