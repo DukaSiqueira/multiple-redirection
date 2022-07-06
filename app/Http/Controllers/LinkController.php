@@ -33,7 +33,6 @@ class LinkController extends Controller
                 'link_default', 'link_gerado_id', 'data_validade']);
             return $this->link_redirecionamento->createLinkRedirecionamento($filters);
         } catch (\Throwable $exception) {
-            dd($exception);
             response($exception->getMessage(), 500);
         }
     }

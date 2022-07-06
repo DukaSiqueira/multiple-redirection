@@ -28,7 +28,6 @@ class LinkRedirecionamento extends Model
                 ->whereRaw('link_redirecionamento.acessto_atual < link_redirecionamento.acesso_maximo')
                 ->first();
 
-
             if ($link_default) {
                 return response('Um link default já está cadastrado e válido! Para cadastrar outro default, destive esse link.', 500);
             }
@@ -60,19 +59,44 @@ class LinkRedirecionamento extends Model
 
     public function editLinkRedirect($request)
     {
-        //acesso_maximo - acessto_atual
-        //link_default - link_gerado_id - data_validade
-
         if ($request->default) {
             $link_default = self::join('link_gerado', 'link_redirecionamento.link_gerado_id', 'linkgerado.id')
                 ->where('link_redirecionamento.link_gerado_id', $request->link_gerado_id)
                 ->where('link_gerado.valido', 1)
                 ->where('link_redirecionamento.link_default', 1)
+                ->where('link_redirecionamento.id', $request->link_redirect_id)
                 ->whereRaw('link_redirecionamento.acessto_atual < link_redirecionamento.acesso_maximo')
                 ->first();
 
-            return response('Existe um li');
+            return response('Um link default já está cadastrado e válido! Para cadastrar outro default, destive esse link.', 500);
         }
 
+        $link_existente = self::join('link_gerado', 'link_redirecionamento.link_gerado_id', 'link_gerado.id')
+            ->where('link_redirecionamento.link_gerado_id', $request->link_gerado_id)
+            ->where('link_redirecionamento.link',  (string)$request->link)
+            ->first();
+
+
+        if ($link_existente) {
+            return response('Link já cadastrado.', 500) ;
+        }
+
+        $link = self::find($request->link_redirect_id);
+
+        $linkURL = $request->link ?? $link->link;
+        $acesso_maximo =  $request->acesso_maximo ?? $link->acesso_maximo;
+        $data_validade =  $request->data_validade ?? $link->data_validade;
+        $link_default =   $request->link_default ?? $link->link_default;
+
+        $link->update([
+            'id' => $request->link_redirect_id,
+            'link' => $linkURL,
+            'acesso_maximo' => $acesso_maximo,
+            'data_validade' => $data_validade,
+            'link_default' => $link_default,
+            'link_gerado_id' => $request->link_gerado_id,
+        ]);
+
+        return $link;
     }
 }
