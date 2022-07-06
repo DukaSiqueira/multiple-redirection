@@ -22,24 +22,10 @@ class LinkGerado extends Model
         $validator = Validator::make($filters,
         [
             'nome' => 'required',
-            'link_redirecionamento' => 'required',
-            'acesso_maximo' => 'required'
         ]);
 
         if ($validator->fails()) {
             return $validator->errors();
-        }
-
-        $date = date('Y-m-d');
-        $link_valido =  self::join('link_redirecionamento', 'link_gerado.id', 'link_redirecionamento.link_gerado_id')
-                ->whereRaw("(link_redirecionamento.data_validade > '$date' OR link_redirecionamento.data_validade = '1900-01-01')")
-                ->where('link_gerado.valido', 1)
-                ->where('link_redirecionamento.link_default', 1)
-                ->whereRaw('link_redirecionamento.acessto_atual < link_redirecionamento.acesso_maximo')
-                ->first();
-
-        if ($link_valido) {
-            response('Um link default já está cadastrado e válido! Para cadastrar outro default, destive esse link.', 500) ;
         }
 
         $link_random = (string)rand(111111, 999999);
@@ -49,13 +35,11 @@ class LinkGerado extends Model
         $link_gerado->valido = true;
         $link_gerado->save();
 
-        $link_gerado = LinkRedirecionamento::createLinkRedirecionamento($filters, $link_gerado->id);
-
         return response($dataRest = [
             'message' => 'Link criado com sucesso',
             'nome_link' => $filters['nome'],
             'link_gerado' => 'http://localhost:8080/api/'.$link_random,
-            'acessos' => $link_gerado->acesso_maximo
+            'ativo' => $link_gerado->valido
         ], 200);
     }
 
